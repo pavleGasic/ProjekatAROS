@@ -23,7 +23,7 @@ pthread_cond_t paper_thread =	PTHREAD_COND_INITIALIZER;
 pthread_cond_t match_thread =	PTHREAD_COND_INITIALIZER;
 
 
-//logicke promenljive koje sluze za laksi rad sa nitima
+//logicke promenljive koje sluze za rad sa nitima
 bool tobacco = false;
 bool paper = false;
 bool match = false;
@@ -42,9 +42,54 @@ void* smoker_P(void* ptr);
 void* smoker_M(void* ptr);
 
 //main funkcija
-int main(int argc, char *argv[]){
+int main(void){
 	
+	pthread_t agent_main, smoker_tobacco_main, smoker_match_main, smoker_paper_main, tobacco_main, paper_main, match_main;
 	
+	if(pthread_create(&agent_main, NULL, agent, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&smoker_tobacco_main, NULL, pusher_T, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&smoker_match_main, NULL, pusher_M, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&smoker_paper_main, NULL, pusher_P, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&tobacco_main, NULL, smoker_T, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&match_main, NULL, smoker_M, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+	if(pthread_create(&paper_main, NULL, smoker_P, NULL) != 0){
+		fprintf(stderr, "Nije moguce kreirati nit\n");
+		return 0;
+		};
+		
+		
+	pthread_join(agent_main, NULL);
+	pthread_join(smoker_tobacco_main, NULL);
+	pthread_join(smoker_paper_main, NULL);
+	pthread_join(smoker_match_main, NULL);
+	pthread_join(tobacco_main, NULL);
+	pthread_join(paper_main, NULL);
+	pthread_join(match_main, NULL);
+
 	return 0;
 }
 
@@ -52,8 +97,12 @@ int main(int argc, char *argv[]){
 //funkcija agent
 void *agent(void* ptr){
 	while(1){
-		sleep(1);
+		
+		sleep(3);
+		printf("\n-----------------------------------------\n");
+		
 		pthread_mutex_lock(&mutex1);
+		
 		while (agent_bool==false){
 			pthread_cond_wait(&agent_thread, &mutex1);
 		}
@@ -64,7 +113,8 @@ void *agent(void* ptr){
 			agent_bool = false;
 			tobacco = true;
 			paper = true;
-			printf("Uzmi tobacco i paper.");
+			printf("Na stolu su tobacco i paper. \n");
+			sleep(2);
 			pthread_cond_signal(&paper_thread);
 			pthread_cond_signal(&tobacco_thread);
 		}
@@ -73,7 +123,8 @@ void *agent(void* ptr){
 			agent_bool = false;
 			tobacco = true;
 			match = true;
-			printf("Uzmi tobacco i match.");
+			printf("Na stolu su tobacco i match. \n");
+			sleep(2);
 			pthread_cond_signal(&tobacco_thread);
 			pthread_cond_signal(&match_thread);
 		}
@@ -82,7 +133,8 @@ void *agent(void* ptr){
 			agent_bool = false;
 			match = true;
 			paper = true;
-			printf("Uzmi match i paper.");
+			printf("Na stolu su match i paper. \n");
+			sleep(2);
 			pthread_cond_signal(&match_thread);
 			pthread_cond_signal(&paper_thread);
 		}
@@ -110,14 +162,16 @@ void * pusher_T(void* ptr){
 			paper = false;
 			agent_bool = false;
 			smoker_match_bool = true;
-			printf("Pozovi u rad match smoker-a.\n");
+			printf("Pozivam match smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_m);
 		}
 		if(match){
 			match = false;
 			agent_bool = false;
 			smoker_paper_bool = true;
-			printf("Pozovi u rad paper smoker-a.\n");
+			printf("Pozivam paper smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_p);
 		}
 		
@@ -140,7 +194,8 @@ void* pusher_P(void*ptr){
 			tobacco = false;
 			agent_bool = false;
 			smoker_match_bool = true;
-			printf("Pozovi u rad match smoker-a.\n");
+			printf("Pozivam match smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_m);
 		}
 	
@@ -148,7 +203,8 @@ void* pusher_P(void*ptr){
 			match = false;
 			agent_bool = false;
 			smoker_tobacco_bool = true;
-			printf("Pozovi u rad tobacco smoker-a.\n");
+			printf("Pozivam rad tobacco smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_t);
 			}
 		
@@ -170,7 +226,8 @@ void* pusher_M(void* ptr){
 			paper = false;
 			agent_bool = false;
 			smoker_tobacco_bool = true;
-			printf("Pozovi u rad tobacco smoker-a.\n");
+			printf("Pozivam tobacco smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_t);
 		}
 		
@@ -178,7 +235,8 @@ void* pusher_M(void* ptr){
 			tobacco = false;
 			agent_bool = false;
 			smoker_paper_bool = true;
-			printf("Pozovi u rad paper smoker-a.\n");
+			printf("Pozivam paper smoker-a...\n");
+			sleep(1);
 			pthread_cond_signal(&smoker_thread_p);
 			}
 		
@@ -204,6 +262,7 @@ void* smoker_T(void* ptr){
 		agent_bool = true;
 		
 		printf("Tobacco smoker pravi cigaretu...\n");
+		sleep(1);
 		
 		pthread_mutex_unlock(&mutex2);
 		
@@ -229,6 +288,7 @@ void* smoker_M(void* ptr){
 		agent_bool = true;
 		
 		printf("Match smoker pravi cigaretu...\n");
+		sleep(1);
 		
 		pthread_mutex_unlock(&mutex2);
 		
@@ -252,6 +312,7 @@ void* smoker_P(void* ptr){
 		agent_bool = true;
 		
 		printf("Paper smoker pravi cigaretu...\n");
+		sleep(1);
 		
 		pthread_mutex_unlock(&mutex2);
 		
